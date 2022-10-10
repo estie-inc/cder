@@ -2,10 +2,15 @@ use anyhow::Result;
 use std::{env, fs, path::PathBuf};
 
 /// Read seeds from specified file
-pub fn read_seed_file(filename: &str) -> Result<String> {
-    let fixture_dir = "fixtures"; // NOTE: consider overridiing this with a environment var
-    let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    path.push(fixture_dir);
+pub fn read_file(filename: &str, base_dir: Option<&str>) -> Result<String> {
+    let mut path = match base_dir {
+        Some(dir) => PathBuf::from(dir),
+        None => {
+            let mut path = env::current_dir().unwrap();
+            path.push("fixtures");
+            path
+        }
+    };
     path.push(filename);
 
     fs::read_to_string(&path)

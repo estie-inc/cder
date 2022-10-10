@@ -7,7 +7,7 @@ use serde::de::DeserializeOwned;
 use std::collections::HashMap;
 
 mod reader;
-use reader::read_seed_file;
+use reader::read_file;
 
 mod resolver;
 use resolver::resolve_tags;
@@ -28,6 +28,7 @@ where
     T: DeserializeOwned,
 {
     filename: String,
+    base_dir: Option<String>,
     record_map: Option<Dict<T>>,
 }
 
@@ -37,9 +38,10 @@ impl<T> StructLoader<T>
 where
     T: DeserializeOwned,
 {
-    pub fn new(filename: &str) -> Self {
+    pub fn new(filename: &str, base_dir: Option<&str>) -> Self {
         Self {
             filename: filename.to_string(),
+            base_dir: base_dir.map(|dir| dir.to_string()),
             record_map: None,
         }
     }
@@ -55,7 +57,7 @@ where
         }
 
         // read contents as string from the seed file
-        let raw_text = read_seed_file(&self.filename)?;
+        let raw_text = read_file(&self.filename, self.base_dir.as_deref())?;
 
         // replace embedded tags before deserialization gets started
         let parsed_text = resolve_tags(&raw_text, dependencies).map_err(|err| {
