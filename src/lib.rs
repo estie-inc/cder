@@ -1,6 +1,8 @@
+mod database_seeder;
 mod reader;
 mod resolver;
 mod struct_loader;
+pub use database_seeder::DatabaseSeeder;
 pub use struct_loader::StructLoader;
 
 use anyhow::Result;
