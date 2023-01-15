@@ -6,7 +6,9 @@ pub fn read_file(filename: &str, base_dir: Option<&str>) -> Result<String> {
     let mut path = match base_dir {
         Some(dir) => PathBuf::from(dir),
         None => {
-            let mut path = env::current_dir().unwrap();
+            let mut path = env::current_dir().expect(
+                "could not find curent_dir. you might want to check permission, or specify the base directory manually",
+            );
             path.push("fixtures");
             path
         }
