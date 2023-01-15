@@ -1,0 +1,12 @@
+Alice:
+  name: Alice
+  email: 'alice@example.com'
+  plan: !Premium
+Bob:
+  name: Bob
+  email: 'bob@example.com'
+  plan: !Family { shared_membership: 4 }
+Dev:
+  name: Developer
+  email: {{ ENV(DEV_EMAIL:-"developer@example.com") }}
+  plan: !Standard

@@ -1,0 +1,12 @@
+Melon:
+  name: melon
+  price: 500
+Orange:
+  name: orange
+  price: 200
+Apple:
+  name: apple
+  price: 100
+Carrot:
+  name: carrot
+  price: 150

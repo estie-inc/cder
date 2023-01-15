@@ -16,8 +16,8 @@ pub struct StructLoader<T>
 where
     T: DeserializeOwned,
 {
-    filename: String,
-    base_dir: Option<String>,
+    pub filename: String,
+    pub base_dir: Option<String>,
     named_records: Option<Dict<T>>,
 }
 
@@ -61,6 +61,10 @@ where
                 key,
             )
         })
+    }
+
+    pub fn get_all_records(&self) -> Result<&Dict<T>> {
+        self.get_records()
     }
 
     fn set_recoards(&mut self, named_records: Dict<T>) -> Result<()> {
