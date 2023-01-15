@@ -1,19 +1,23 @@
 Order1:
+  id: 1200
   customer_id: {{ REF(Alice) }}
   item_id: {{ REF(Apple) }}
   quantity: 2
   purchased_at: "2021-03-01T15:15:44"
 Order2:
+  id: 1201
   customer_id: {{ REF(Bob) }}
   item_id: {{ REF(Melon) }}
   quantity: 1
   purchased_at: "2021-03-02T07:51:20"
 Order3:
+  id: 1202
   customer_id: {{ REF(Alice) }}
   item_id: {{ REF(Carrot) }}
   quantity: 4
   purchased_at: "2021-03-10T10:10:33"
 Order4:
+  id: 1203
   customer_id: {{ REF(Dev) }}
   item_id: {{ REF(Melon) }}
   quantity: 2
