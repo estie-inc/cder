@@ -3,6 +3,14 @@ use anyhow::Result;
 use log::info;
 use std::{collections::HashMap, env, usize};
 
+#[macro_export]
+macro_rules! regex {
+    ($re:literal $(,)?) => {{
+        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
+        RE.get_or_init(|| regex::Regex::new($re).unwrap())
+    }};
+}
+
 /// replaces embedded custom tags before deserialization
 /// tags can be used to allocate dynamic values to the seed object
 /// format:

@@ -9,14 +9,6 @@ use reader::read_file;
 mod resolver;
 use resolver::resolve_tags;
 
-#[macro_export]
-macro_rules! regex {
-    ($re:literal $(,)?) => {{
-        static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
-        RE.get_or_init(|| regex::Regex::new($re).unwrap())
-    }};
-}
-
 /// struct that contains deserialized records as well as its original file
 /// internally HashMap is used to map records against their labelled names
 /// NOTE: record names must be unique, otherwise the ealier records will be overwritten by the latter.
