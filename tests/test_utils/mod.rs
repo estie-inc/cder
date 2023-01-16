@@ -2,27 +2,28 @@
 use anyhow::Result;
 use chrono::NaiveDateTime;
 use serde::Deserialize;
+use std::sync::{Arc, Mutex};
 use std::{collections::HashMap, env};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Item {
     pub name: String,
     pub price: f64,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Customer {
     pub name: String,
     pub email: String,
     pub plan: Plan,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub enum Plan {
     Premium,
     Family { shared_membership: u8 },
     Standard,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Order {
     pub id: i64,
     pub customer_id: i64,
@@ -42,19 +43,32 @@ pub fn parse_datetime(s: &str) -> Result<NaiveDateTime> {
     Ok(datetime)
 }
 
-pub struct MockTable<T> {
-    ids_by_name: HashMap<String, i64>,
-    pub records: Vec<T>,
+#[derive(Clone)]
+pub struct MockTable<T>
+where
+    T: Clone,
+{
+    ids_by_name: Arc<Mutex<HashMap<String, i64>>>,
+    records: Arc<Mutex<Vec<T>>>,
 }
 
 // tentative mock 'database' that can store records to get tested later on.
 // TODO: use database to make it work with async
-impl<T> MockTable<T> {
+impl<T> MockTable<T>
+where
+    T: Clone,
+{
     pub fn new(ids_by_name: Vec<(String, i64)>) -> Self {
+        let ids_by_name = HashMap::from_iter(ids_by_name.into_iter());
+
         MockTable {
-            ids_by_name: HashMap::from_iter(ids_by_name.into_iter()),
-            records: Vec::new(),
+            ids_by_name: Arc::new(Mutex::new(ids_by_name)),
+            records: Arc::new(Mutex::new(Vec::new())),
         }
+    }
+
+    pub fn get_records(&self) -> Vec<T> {
+        self.records.lock().unwrap().clone()
     }
 }
 
@@ -63,12 +77,13 @@ impl MockTable<Item> {
     pub async fn insert(&mut self, record: Item) -> Result<i64> {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
-        let id = self
-            .ids_by_name
+        let ids_by_name = self.ids_by_name.lock().unwrap();
+        let id = ids_by_name
             .get(&record.name)
             .map(|i| i.to_owned())
             .ok_or_else(|| anyhow::anyhow!("insert failed"));
-        self.records.push(record);
+        let mut records = self.records.lock().unwrap();
+        records.push(record);
 
         id
     }
@@ -79,12 +94,13 @@ impl MockTable<Customer> {
     pub async fn insert(&mut self, record: Customer) -> Result<i64> {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
-        let id = self
-            .ids_by_name
+        let ids_by_name = self.ids_by_name.lock().unwrap();
+        let id = ids_by_name
             .get(&record.name)
             .map(|i| i.to_owned())
             .ok_or_else(|| anyhow::anyhow!("insert failed"));
-        self.records.push(record);
+        let mut records = self.records.lock().unwrap();
+        records.push(record);
 
         id
     }
@@ -95,12 +111,13 @@ impl MockTable<Order> {
     pub async fn insert(&mut self, record: Order) -> Result<i64> {
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
-        let id = self
-            .ids_by_name
+        let ids_by_name = self.ids_by_name.lock().unwrap();
+        let id = ids_by_name
             .get(&record.id.to_string())
             .map(|i| i.to_owned())
             .ok_or_else(|| anyhow::anyhow!("insert failed"));
-        self.records.push(record);
+        let mut records = self.records.lock().unwrap();
+        records.push(record);
 
         id
     }

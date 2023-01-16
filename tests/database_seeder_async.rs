@@ -4,7 +4,6 @@ extern crate cder;
 
 use anyhow::Result;
 use cder::DatabaseSeeder;
-use tokio::runtime::Runtime;
 
 #[test]
 fn test_database_seeder_new() {
@@ -13,8 +12,8 @@ fn test_database_seeder_new() {
     assert_eq!(seeder.base_dir, Some("fixtures".to_string()));
 }
 
-#[test]
-fn test_database_seeder_populate_items() -> Result<()> {
+#[tokio::test]
+async fn test_database_seeder_populate_async_items() -> Result<()> {
     let base_dir = get_test_base_dir();
     let mock_table = MockTable::<Item>::new(vec![
         ("melon".to_string(), 1),
@@ -22,13 +21,14 @@ fn test_database_seeder_populate_items() -> Result<()> {
         ("apple".to_string(), 3),
         ("carrot".to_string(), 4),
     ]);
-    let rt = Runtime::new().unwrap();
 
     let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
-    let ids = seeder.populate("items.yml", |input: Item| {
-        let mut mock_table = mock_table.clone();
-        rt.block_on(mock_table.insert(input))
-    })?;
+    let ids = seeder
+        .populate_async("items.yml", |input: Item| {
+            let mut mock_table = mock_table.clone();
+            Box::pin(async move { mock_table.insert(input).await })
+        })
+        .await?;
 
     let persisted_records = mock_table.get_records();
     let records = sort_records_by_ids(persisted_records, ids);
@@ -48,21 +48,22 @@ fn test_database_seeder_populate_items() -> Result<()> {
     Ok(())
 }
 
-#[test]
-fn test_database_seeder_populate_customers() -> Result<()> {
+#[tokio::test]
+async fn test_database_seeder_populate_async_customers() -> Result<()> {
     let base_dir = get_test_base_dir();
     let mock_table = MockTable::<Customer>::new(vec![
         ("Alice".to_string(), 1),
         ("Bob".to_string(), 2),
         ("Developer".to_string(), 3),
     ]);
-    let rt = Runtime::new().unwrap();
 
     let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
-    let ids = seeder.populate("customers.yml", |input: Customer| {
-        let mut mock_table = mock_table.clone();
-        rt.block_on(mock_table.insert(input))
-    })?;
+    let ids = seeder
+        .populate_async("customers.yml", |input: Customer| {
+            let mut mock_table = mock_table.clone();
+            Box::pin(async move { mock_table.insert(input).await })
+        })
+        .await?;
 
     let persisted_records = mock_table.get_records();
     let records = sort_records_by_ids(persisted_records, ids);
@@ -88,11 +89,9 @@ fn test_database_seeder_populate_customers() -> Result<()> {
     Ok(())
 }
 
-#[test]
-fn test_database_seeder_populate_orders() -> Result<()> {
+#[tokio::test]
+async fn test_database_seeder_populate_async_orders() -> Result<()> {
     let base_dir = get_test_base_dir();
-    let rt = Runtime::new().unwrap();
-
     let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
 
     {
@@ -104,10 +103,12 @@ fn test_database_seeder_populate_orders() -> Result<()> {
             ("1202".to_string(), 3),
             ("1203".to_string(), 4),
         ]);
-        let results = seeder.populate("orders.yml", |input: Order| {
-            let mut mock_orders_table = mock_orders_table.clone();
-            rt.block_on(mock_orders_table.insert(input))
-        });
+        let results = seeder
+            .populate_async("orders.yml", |input: Order| {
+                let mut mock_orders_table = mock_orders_table.clone();
+                Box::pin(async move { mock_orders_table.insert(input).await })
+            })
+            .await;
 
         assert!(results.is_err());
     }
@@ -120,19 +121,23 @@ fn test_database_seeder_populate_orders() -> Result<()> {
             ("apple".to_string(), 3),
             ("carrot".to_string(), 4),
         ]);
-        seeder.populate("items.yml", |input: Item| {
-            let mut mock_items_table = mock_items_table.clone();
-            rt.block_on(mock_items_table.insert(input))
-        })?;
+        seeder
+            .populate_async("items.yml", |input: Item| {
+                let mut mock_items_table = mock_items_table.clone();
+                Box::pin(async move { mock_items_table.insert(input).await })
+            })
+            .await?;
         let mock_customers_table = MockTable::<Customer>::new(vec![
             ("Alice".to_string(), 1),
             ("Bob".to_string(), 2),
             ("Developer".to_string(), 3),
         ]);
-        seeder.populate("customers.yml", |input: Customer| {
-            let mut mock_customers_table = mock_customers_table.clone();
-            rt.block_on(mock_customers_table.insert(input))
-        })?;
+        seeder
+            .populate_async("customers.yml", |input: Customer| {
+                let mut mock_customers_table = mock_customers_table.clone();
+                Box::pin(async move { mock_customers_table.insert(input).await })
+            })
+            .await?;
 
         let mock_orders_table = MockTable::<Order>::new(vec![
             ("1200".to_string(), 1),
@@ -140,10 +145,12 @@ fn test_database_seeder_populate_orders() -> Result<()> {
             ("1202".to_string(), 3),
             ("1203".to_string(), 4),
         ]);
-        let ids = seeder.populate("orders.yml", |input: Order| {
-            let mut mock_orders_table = mock_orders_table.clone();
-            rt.block_on(mock_orders_table.insert(input))
-        })?;
+        let ids = seeder
+            .populate_async("orders.yml", |input: Order| {
+                let mut mock_orders_table = mock_orders_table.clone();
+                Box::pin(async move { mock_orders_table.insert(input).await })
+            })
+            .await?;
 
         let persisted_records = mock_orders_table.get_records();
         let records = sort_records_by_ids(persisted_records, ids);
