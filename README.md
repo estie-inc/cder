@@ -1,4 +1,4 @@
-[![cder](https://github.com/fursich/cder/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fursich/cder/actions/workflows/ci.yml)
+[![cder](https://github.com/estie-inc/cder/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/estie-inc/cder/actions/workflows/ci.yml)
 
 # cder
 
@@ -210,4 +210,4 @@ The project is available as open source under the terms of the [MIT License](htt
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, shall be licensed as MIT, without any additional terms or conditions.
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/fursich/cder
+Bug reports and pull requests are welcome on GitHub at https://github.com/estie-inc/cder
