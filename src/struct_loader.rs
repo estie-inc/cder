@@ -1,5 +1,4 @@
 use anyhow::Result;
-use log::info;
 use serde::de::DeserializeOwned;
 
 use crate::{load_named_records, Dict};
@@ -29,8 +28,6 @@ where
     }
 
     pub fn load(&mut self, dependencies: &Dict<String>) -> Result<&Self> {
-        info!("loading {}...", self.filename);
-
         if self.named_records.is_some() {
             return Err(anyhow::anyhow!(
                 "filename : {} the records have been loaded already",

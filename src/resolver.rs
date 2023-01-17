@@ -1,6 +1,5 @@
 use crate::regex;
 use anyhow::Result;
-use log::info;
 use std::{collections::HashMap, env, usize};
 
 #[macro_export]
@@ -69,7 +68,6 @@ pub fn resolve_tags(raw_text: &str, dict: &HashMap<String, String>) -> Result<St
         };
     }
 
-    info!("tags has been replaced: {}", parsed_text);
     Ok(parsed_text)
 }
 
