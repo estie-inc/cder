@@ -19,7 +19,7 @@ cder provides you a yaml-based simple seeding mechanism that allows you to:
 
 With **embedded tags**, you can also define relations between records
 (without even knowing their primary keys), as well as generate a
-personally-customizeable attributes using environment variables.
+personally-customizable attributes using environment variables.
 
 This embedded-tag mechanism is inspired by [fixtures](https://github.com/rails/rails/blob/c9a0f1ab9616ca8e94f03327259ab61d22f04b51/activerecord/lib/active_record/fixtures.rb) that Ruby on Rails provides for test data generation.
 
@@ -32,9 +32,9 @@ cder = "0.1"
 ```
 ## Usage
 
-### Quickstart
+### Quick start
 
-#### constucting objects
+#### constructing objects
 
 Suppose you have User struct;
 ```rust
@@ -188,7 +188,7 @@ Customer3:
   contact: !Unknown
 ```
 
-#### Futher customization
+#### Further customization
 cder deserializes yaml data based on [serde-yaml](https://github.com/dtolnay/serde-yaml), that supports powerful [serde serialization framework](https://serde.rs/). With serde, you can deserialize pretty much any struct. You can see a few [sample structs](tests/test_utils/types.rs) with various types of attributes and [the yaml files](tests/fixtures) that can be used as their seeds.
 
 Check [serde-yaml's github page](https://github.com/dtolnay/serde-yaml) for further details.
@@ -199,14 +199,14 @@ Check [serde-yaml's github page](https://github.com/dtolnay/serde-yaml) for furt
 ### Environment vars
 * TODO
 
-#### Defaut value
+#### Default value
 * TODO
 
 ## License
 
 The project is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
-## Contributionn
+## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, shall be licensed as MIT, without any additional terms or conditions.
 
