@@ -6,21 +6,21 @@ use std::pin::Pin;
 
 pub struct DatabaseSeeder {
     pub filenames: Vec<String>,
-    pub base_dir: Option<String>,
+    pub base_dir: String,
     name_resolver: Dict<String>,
 }
 
 impl Default for DatabaseSeeder {
     fn default() -> Self {
-        Self::new(None)
+        Self::new("fixtures")
     }
 }
 
 impl DatabaseSeeder {
-    pub fn new(base_dir: Option<&str>) -> Self {
+    pub fn new(base_dir: &str) -> Self {
         Self {
             filenames: Vec::new(),
-            base_dir: base_dir.map(|dir| dir.to_string()),
+            base_dir: base_dir.to_string(),
             name_resolver: Dict::<String>::new(),
         }
     }
@@ -30,8 +30,7 @@ impl DatabaseSeeder {
         F: FnMut(T) -> Result<i64>,
         T: DeserializeOwned,
     {
-        let named_records =
-            load_named_records::<T>(filename, self.base_dir.as_deref(), &self.name_resolver)?;
+        let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         let mut ids = Vec::new();
 
         for (name, record) in named_records {
@@ -57,8 +56,9 @@ impl DatabaseSeeder {
         F: FnMut(T) -> Pin<Box<dyn Future<Output = Result<i64>> + 'a>>,
         T: DeserializeOwned + 'a,
     {
-        let named_records =
-            load_named_records::<T>(filename, self.base_dir.as_deref(), &self.name_resolver)?;
+        let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
+        self.filenames.push(filename.to_string());
+
         let mut ids = Vec::new();
 
         for (name, record) in named_records {

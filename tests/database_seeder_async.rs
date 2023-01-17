@@ -7,9 +7,9 @@ use cder::DatabaseSeeder;
 
 #[test]
 fn test_database_seeder_new() {
-    let seeder = DatabaseSeeder::new(Some("fixtures"));
+    let seeder = DatabaseSeeder::new("fixtures");
     assert!(seeder.filenames.is_empty());
-    assert_eq!(seeder.base_dir, Some("fixtures".to_string()));
+    assert_eq!(seeder.base_dir, "fixtures".to_string());
 }
 
 #[tokio::test]
@@ -22,7 +22,7 @@ async fn test_database_seeder_populate_async_items() -> Result<()> {
         ("carrot".to_string(), 4),
     ]);
 
-    let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
+    let mut seeder = DatabaseSeeder::new(&base_dir);
     let ids = seeder
         .populate_async("items.yml", |input: Item| {
             let mut mock_table = mock_table.clone();
@@ -57,7 +57,7 @@ async fn test_database_seeder_populate_async_customers() -> Result<()> {
         ("Developer".to_string(), 3),
     ]);
 
-    let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
+    let mut seeder = DatabaseSeeder::new(&base_dir);
     let ids = seeder
         .populate_async("customers.yml", |input: Customer| {
             let mut mock_table = mock_table.clone();
@@ -99,7 +99,7 @@ async fn test_database_seeder_populate_async_customers() -> Result<()> {
 #[tokio::test]
 async fn test_database_seeder_populate_async_orders() -> Result<()> {
     let base_dir = get_test_base_dir();
-    let mut seeder = DatabaseSeeder::new(base_dir.as_deref());
+    let mut seeder = DatabaseSeeder::new(&base_dir);
 
     {
         // when dependencies are missing

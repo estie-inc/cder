@@ -7,10 +7,10 @@ use anyhow::Result;
 use chrono::NaiveDateTime;
 use std::env;
 
-pub fn get_test_base_dir() -> Option<String> {
+pub fn get_test_base_dir() -> String {
     let mut path = env::current_dir().unwrap();
     path.push("tests/fixtures");
-    path.to_str().map(|s| s.to_string())
+    path.to_str().unwrap().to_string()
 }
 
 pub fn parse_datetime(s: &str) -> Result<NaiveDateTime> {

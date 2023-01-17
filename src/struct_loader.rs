@@ -12,7 +12,7 @@ where
     T: DeserializeOwned,
 {
     pub filename: String,
-    pub base_dir: Option<String>,
+    pub base_dir: String,
     named_records: Option<Dict<T>>,
 }
 
@@ -20,10 +20,10 @@ impl<T> StructLoader<T>
 where
     T: DeserializeOwned,
 {
-    pub fn new(filename: &str, base_dir: Option<&str>) -> Self {
+    pub fn new(filename: &str, base_dir: &str) -> Self {
         Self {
             filename: filename.to_string(),
-            base_dir: base_dir.map(|dir| dir.to_string()),
+            base_dir: base_dir.to_string(),
             named_records: None,
         }
     }
@@ -38,8 +38,7 @@ where
             ));
         }
 
-        let records =
-            load_named_records::<T>(&self.filename, self.base_dir.as_deref(), dependencies)?;
+        let records = load_named_records::<T>(&self.filename, &self.base_dir, dependencies)?;
         self.set_recoards(records)?;
 
         Ok(self)

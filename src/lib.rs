@@ -15,7 +15,7 @@ pub type Dict<T> = HashMap<String, T>;
 
 fn load_named_records<T>(
     filename: &str,
-    base_dir: Option<&str>,
+    base_dir: &str,
     dependencies: &Dict<String>,
 ) -> Result<Dict<T>>
 where

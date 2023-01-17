@@ -8,9 +8,9 @@ use std::env;
 
 #[test]
 fn test_struct_loader_new() {
-    let loader = StructLoader::<Item>::new("items.yml", Some("fixtures"));
+    let loader = StructLoader::<Item>::new("items.yml", "fixtures");
     assert_eq!(loader.filename, "items.yml");
-    assert_eq!(loader.base_dir, Some("fixtures".to_string()));
+    assert_eq!(loader.base_dir, "fixtures".to_string());
 }
 
 #[test]
@@ -18,7 +18,7 @@ fn test_struct_loader_load_items() -> Result<()> {
     let empty_dict = Dict::<String>::new();
     let base_dir = get_test_base_dir();
 
-    let mut loader = StructLoader::<Item>::new("items.yml", base_dir.as_deref());
+    let mut loader = StructLoader::<Item>::new("items.yml", &base_dir);
     loader.load(&empty_dict)?;
 
     let item = loader.get("Melon")?;
@@ -45,7 +45,7 @@ fn test_struct_loader_get_all_items() -> Result<()> {
     let empty_dict = Dict::<String>::new();
     let base_dir = get_test_base_dir();
 
-    let mut loader = StructLoader::<Item>::new("items.yml", base_dir.as_deref());
+    let mut loader = StructLoader::<Item>::new("items.yml", &base_dir);
     loader.load(&empty_dict)?;
 
     let named_records = loader.get_all_records()?;
@@ -78,7 +78,7 @@ fn test_struct_loader_load_customers() -> Result<()> {
         // when ENV var is specified
 
         env::set_var("DEV_EMAIL", "johndoo@dev.example.com");
-        let mut loader = StructLoader::<Customer>::new("customers.yml", base_dir.as_deref());
+        let mut loader = StructLoader::<Customer>::new("customers.yml", &base_dir);
         loader.load(&empty_dict)?;
 
         let customer = loader.get("Alice")?;
@@ -116,7 +116,7 @@ fn test_struct_loader_load_customers() -> Result<()> {
     {
         // when ENV var is not specified
 
-        let mut loader = StructLoader::<Customer>::new("customers.yml", base_dir.as_deref());
+        let mut loader = StructLoader::<Customer>::new("customers.yml", &base_dir);
         loader.load(&empty_dict)?;
 
         let customer = loader.get("Alice")?;
@@ -159,7 +159,7 @@ fn test_struct_loader_load_orders() -> Result<()> {
     {
         // when dependencies are missing
 
-        let mut loader = StructLoader::<Order>::new("orders.yml", base_dir.as_deref());
+        let mut loader = StructLoader::<Order>::new("orders.yml", &base_dir);
         let result = loader.load(&empty_dict);
 
         assert!(result.is_err());
@@ -181,7 +181,7 @@ fn test_struct_loader_load_orders() -> Result<()> {
             .map(|(name, id)| (name.to_string(), id.to_string()))
             .collect::<Dict<String>>();
 
-        let mut loader = StructLoader::<Order>::new("orders.yml", base_dir.as_deref());
+        let mut loader = StructLoader::<Order>::new("orders.yml", &base_dir);
         loader.load(&mapping)?;
 
         let order = loader.get("Order1")?;
