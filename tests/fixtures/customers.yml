@@ -9,6 +9,6 @@ Bob:
   country_code: 81
 Dev:
   name: Developer
-  emails: [{{ ENV(DEV_EMAIL:-"developer@example.com") }}]
+  emails: [${{ ENV(DEV_EMAIL:-"developer@example.com") }}]
   plan: !Standard
   country_code: 44

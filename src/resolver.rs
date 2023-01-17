@@ -14,11 +14,11 @@ macro_rules! regex {
 /// replaces embedded custom tags before deserialization
 /// tags can be used to allocate dynamic values to the seed object
 /// format:
-/// tags must be surrounded between two consecutive braces: {{ ... }}
+/// tags must be surrounded between two consecutive braces: ${{ ... }}
 /// inside, there must be a pair of 'directive' followed by a 'key' surrounded in the parenthesis.
-/// so the basic form is: {{ directive(key) }}
+/// so the basic form is: ${{ directive(key) }}
 /// you can also add a 'default' value as follows, which can be used in case it fails to resolve
-/// the specified key: {{ directive(key:-default) }}
+/// the specified key: ${{ directive(key:-default) }}
 ///
 /// currently it accepts following types as directive:
 ///   ENV(FOO_BAR)   ... replace the tag with the environment variable 'FOO'
@@ -87,8 +87,8 @@ enum ParseResult {
         directive: String,
         key: String,
         default: Option<String>,
-        start: usize, // index the first charactor that matched with {{...}}
-        end: usize,   // index the last charactor that matched with {{...}}
+        start: usize, // index the first charactor that matched with ${{...}}
+        end: usize,   // index the last charactor that matched with ${{...}}
     },
     Nothing, // no matches
 }
@@ -104,11 +104,11 @@ fn resolve_env(key: &str, defalut: Option<String>) -> Result<String> {
     })
 }
 
-/// captures the directive and the key surrounded by {{ }}, returns a ParseResult object
+/// captures the directive and the key surrounded by ${{ }}, returns a ParseResult object
 fn try_consume(source: &str) -> Result<ParseResult> {
-    // matches with something like: {{ AnyTag(some_key) }}
+    // matches with something like: ${{ AnyTag(some_key) }}
     let re = regex!(
-        r#"\{\{\s*(?P<directive>[[:alnum:]]+)\(\s*(?P<key>[[:alnum:]_-]+)(\s*:-\s*(?P<default>([[:alnum:]]+|"[^"[:cntrl:]]+")))?\s*\)\s*\}\}"#
+        r#"\$\{\{\s*(?P<directive>[[:alnum:]]+)\(\s*(?P<key>[[:alnum:]_-]+)(\s*:-\s*(?P<default>([[:alnum:]]+|"[^"[:cntrl:]]+")))?\s*\)\s*\}\}"#
     );
 
     let captures = match re.captures(source) {
@@ -154,7 +154,7 @@ mod tests {
     // test against embedded tags
     fn test_resolve_tags() {
         let raw_text =
-            "The quick brown {{ ENV(FOX) }} jumps over\nthe lazy {{ REF(dog) }}".to_string();
+            "The quick brown ${{ ENV(FOX) }} jumps over\nthe lazy ${{ REF(dog) }}".to_string();
 
         // when correspoinding env var is defined
         env::set_var("FOX", "🦊");
@@ -190,16 +190,16 @@ mod tests {
         assert!(parsed_text.is_err());
 
         // when the tag cannot be recognized (due to incorrect format)
-        let raw_text = "The quick brown {{ENV(FOX?)}} jumps over\nthe lazy {REF(dog)}".to_string();
+        let raw_text = "The quick brown ${{ENV(FOX?)}} jumps over\nthe lazy {REF(dog)}".to_string();
         let parsed_text = resolve_tags(&raw_text, &dict).unwrap();
         // it simply outputs the original text as it is
         assert_eq!(
             parsed_text,
-            "The quick brown {{ENV(FOX?)}} jumps over\nthe lazy {REF(dog)}".to_string()
+            "The quick brown ${{ENV(FOX?)}} jumps over\nthe lazy {REF(dog)}".to_string()
         );
 
         // when the tag contains unsupported directive name
-        let raw_text = "The quick brown {{REFERENCE(fox_id)}} jumps over the lazy dog".to_string();
+        let raw_text = "The quick brown ${{REFERENCE(fox_id)}} jumps over the lazy dog".to_string();
         let parsed_text = resolve_tags(&raw_text, &dict);
         assert!(parsed_text.is_err());
     }
@@ -243,9 +243,9 @@ mod tests {
 
     #[test]
     fn test_try_consume() {
-        let source_text = "abc{{ SomeDirective(key-is-here)  }}xyz";
+        let source_text = "abc${{ SomeDirective(key-is-here)  }}xyz";
         let result = try_consume(source_text).unwrap();
-        // extracts the directive and the key surrounded between double braces {{ }}
+        // extracts the directive and the key surrounded between double braces ${{ }}
         assert_eq!(
             result,
             ParseResult::Found {
@@ -253,14 +253,14 @@ mod tests {
                 key: "key-is-here".to_string(),
                 default: None,
                 start: 3,
-                end: 36,
+                end: 37,
             }
         );
 
         // when default value is provided after the key
-        let source_text = r#"abc{{ SomeDirective(key-is-here:-DEFAULT1)  }}xyz"#;
+        let source_text = r#"abc${{ SomeDirective(key-is-here:-DEFAULT1)  }}xyz"#;
         let result = try_consume(source_text).unwrap();
-        // extracts the directive, the key, and the default value surrounded between double braces {{ }}
+        // extracts the directive, the key, and the default value surrounded between double braces ${{ }}
         assert_eq!(
             result,
             ParseResult::Found {
@@ -268,13 +268,13 @@ mod tests {
                 key: "key-is-here".to_string(),
                 default: Some("DEFAULT1".to_string()),
                 start: 3,
-                end: 46,
+                end: 47,
             }
         );
 
         // the default value may contain any non-control charactors surrounded by double quotes
         // (be it a non-ascii charactor or punctuation)
-        let source_text = r#"abc{{ SomeDirective(key-is-here:-"See? th|s @lso fa!!s b/\ck to .. `default` value 🏡")  }}xyz"#;
+        let source_text = r#"abc${{ SomeDirective(key-is-here:-"See? th|s @lso fa!!s b/\ck to .. `default` value 🏡")  }}xyz"#;
         let result = try_consume(source_text).unwrap();
         assert_eq!(
             result,
@@ -285,13 +285,13 @@ mod tests {
                     r#""See? th|s @lso fa!!s b/\ck to .. `default` value 🏡""#.to_string()
                 ),
                 start: 3,
-                end: 93,
+                end: 94,
             }
         );
 
         // when there is multiple "directive-key" matches
         let source_text =
-            "abc{{ SomeDirective(key-is-here)  }}xyz{{ SomeOtherDirective(key) }}pqrs{{FOO(bar)}}";
+            "abc${{ SomeDirective(key-is-here)  }}xyz${{ SomeOtherDirective(key) }}pqrs${{FOO(bar)}}";
         let result = try_consume(source_text).unwrap();
         // it captures the first one
         assert_eq!(
@@ -301,12 +301,12 @@ mod tests {
                 key: "key-is-here".to_string(),
                 default: None,
                 start: 3,
-                end: 36,
+                end: 37,
             }
         );
 
         // spaces inside double braces are ignored
-        let source_text = "{{　　　 FOOOOO( \t bar )   \t  }}";
+        let source_text = "${{　　　 FOOOOO( \t bar )   \t  }}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(
             result,
@@ -315,12 +315,12 @@ mod tests {
                 key: "bar".to_string(),
                 default: None,
                 start: 0,
-                end: 35,
+                end: 36,
             }
         );
 
         // when parsing the original text (without offset)
-        let source_text = "123456789{{Hoge(fuga)}}";
+        let source_text = "123456789${{Hoge(fuga)}}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(
             result,
@@ -329,7 +329,7 @@ mod tests {
                 key: "fuga".to_string(),
                 default: None,
                 start: 9,
-                end: 23,
+                end: 24,
             }
         );
         // when parsing the text from certain offset index
@@ -341,12 +341,12 @@ mod tests {
                 key: "fuga".to_string(),
                 default: None,
                 start: 0,
-                end: 14,
+                end: 15,
             }
         );
 
         // it detects the closest tag that appears after the offset
-        let source_text = "{{A1(key1)}}  {{A2(key2)}} {{A3(key3)}}";
+        let source_text = "${{A1(key1)}}  ${{A2(key2)}} ${{A3(key3)}}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(
             result,
@@ -355,7 +355,7 @@ mod tests {
                 key: "key1".to_string(),
                 default: None,
                 start: 0,
-                end: 12,
+                end: 13,
             }
         );
         let result = try_consume(&source_text[1..]).unwrap();
@@ -365,22 +365,22 @@ mod tests {
                 directive: "A2".to_string(),
                 key: "key2".to_string(),
                 default: None,
-                start: 13,
-                end: 25,
+                start: 14,
+                end: 27,
             }
         );
-        let result = try_consume(&source_text[15..]).unwrap();
+        let result = try_consume(&source_text[16..]).unwrap();
         assert_eq!(
             result,
             ParseResult::Found {
                 directive: "A3".to_string(),
                 key: "key3".to_string(),
                 default: None,
-                start: 12,
-                end: 24,
+                start: 13,
+                end: 26,
             }
         );
-        let result = try_consume(&source_text[28..]).unwrap();
+        let result = try_consume(&source_text[30..]).unwrap();
         assert_eq!(result, ParseResult::Nothing);
 
         // does NOT capture the tag that is inside a pair of single braces
@@ -389,22 +389,22 @@ mod tests {
         assert_eq!(result, ParseResult::Nothing);
 
         // does NOT capture the tag surrounded by non-pairing braces, or non-consecutive braces
-        let source_text = "{not(a-tag)}} {{not(a-tag-too)} }";
+        let source_text = "{not(a-tag)}} ${{not(a-tag-too)} }";
         let result = try_consume(source_text).unwrap();
         assert_eq!(result, ParseResult::Nothing);
 
         // non-alphanumeric charactors are not recognized as directive
-        let source_text = "{{F-O-O(Bar)}}";
+        let source_text = "${{F-O-O(Bar)}}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(result, ParseResult::Nothing);
 
         // does NOT capture a tag that has no keys surrounded by parenthesis
-        let source_text = "{{no-directive-here}}";
+        let source_text = "${{no-directive-here}}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(result, ParseResult::Nothing);
 
         // does NOT capture a tag that has mal-formatted key/parenthesis
-        let source_text = "{{foo(bar)(baz)}}  {{foo(hoge}}";
+        let source_text = "${{foo(bar)(baz)}}  ${{foo(hoge}}";
         let result = try_consume(source_text).unwrap();
         assert_eq!(result, ParseResult::Nothing);
     }
