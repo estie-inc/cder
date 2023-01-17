@@ -1,12 +1,14 @@
 Alice:
   name: Alice
-  email: 'alice@example.com'
+  emails: ["alice@example.com"]
   plan: !Premium
 Bob:
   name: Bob
-  email: 'bob@example.com'
+  emails: ["bob@example.com", "bob.doe@example.co.jp"]
   plan: !Family { shared_membership: 4 }
+  country_code: 81
 Dev:
   name: Developer
-  email: {{ ENV(DEV_EMAIL:-"developer@example.com") }}
+  emails: [{{ ENV(DEV_EMAIL:-"developer@example.com") }}]
   plan: !Standard
+  country_code: 44

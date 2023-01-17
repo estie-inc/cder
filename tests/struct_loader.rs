@@ -83,24 +83,31 @@ fn test_struct_loader_load_customers() -> Result<()> {
 
         let customer = loader.get("Alice")?;
         assert_eq!(customer.name, "Alice");
-        assert_eq!(customer.email, "alice@example.com");
+        assert_eq!(customer.emails.len(), 1);
+        assert_eq!(customer.emails[0], "alice@example.com");
         assert_eq!(customer.plan, Plan::Premium);
+        assert_eq!(customer.country_code, None);
 
         let customer = loader.get("Bob")?;
         assert_eq!(customer.name, "Bob");
-        assert_eq!(customer.email, "bob@example.com");
+        assert_eq!(customer.emails.len(), 2);
+        assert_eq!(customer.emails[0], "bob@example.com");
+        assert_eq!(customer.emails[1], "bob.doe@example.co.jp");
         assert_eq!(
             customer.plan,
             Plan::Family {
                 shared_membership: 4
             }
         );
+        assert_eq!(customer.country_code, Some(81));
 
         let customer = loader.get("Dev")?;
         assert_eq!(customer.name, "Developer");
+        assert_eq!(customer.emails.len(), 1);
         // replaced by the env var
-        assert_eq!(customer.email, "johndoo@dev.example.com");
+        assert_eq!(customer.emails[0], "johndoo@dev.example.com");
         assert_eq!(customer.plan, Plan::Standard);
+        assert_eq!(customer.country_code, Some(44));
 
         // teardown
         env::remove_var("DEV_EMAIL");
@@ -114,24 +121,31 @@ fn test_struct_loader_load_customers() -> Result<()> {
 
         let customer = loader.get("Alice")?;
         assert_eq!(customer.name, "Alice");
-        assert_eq!(customer.email, "alice@example.com");
+        assert_eq!(customer.emails.len(), 1);
+        assert_eq!(customer.emails[0], "alice@example.com");
         assert_eq!(customer.plan, Plan::Premium);
+        assert_eq!(customer.country_code, None);
 
         let customer = loader.get("Bob")?;
         assert_eq!(customer.name, "Bob");
-        assert_eq!(customer.email, "bob@example.com");
+        assert_eq!(customer.emails.len(), 2);
+        assert_eq!(customer.emails[0], "bob@example.com");
+        assert_eq!(customer.emails[1], "bob.doe@example.co.jp");
         assert_eq!(
             customer.plan,
             Plan::Family {
                 shared_membership: 4
             }
         );
+        assert_eq!(customer.country_code, Some(81));
 
         let customer = loader.get("Dev")?;
         assert_eq!(customer.name, "Developer");
+        assert_eq!(customer.emails.len(), 1);
         // falls back to default
-        assert_eq!(customer.email, "developer@example.com");
+        assert_eq!(customer.emails[0], "developer@example.com");
         assert_eq!(customer.plan, Plan::Standard);
+        assert_eq!(customer.country_code, Some(44));
     }
 
     Ok(())

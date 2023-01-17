@@ -69,22 +69,29 @@ async fn test_database_seeder_populate_async_customers() -> Result<()> {
     let records = sort_records_by_ids(persisted_records, ids);
 
     assert_eq!(records[0].name, "Alice");
-    assert_eq!(records[0].email, "alice@example.com");
+    assert_eq!(records[0].emails.len(), 1);
+    assert_eq!(records[0].emails[0], "alice@example.com");
     assert_eq!(records[0].plan, Plan::Premium);
+    assert_eq!(records[0].country_code, None);
 
     assert_eq!(records[1].name, "Bob");
-    assert_eq!(records[1].email, "bob@example.com");
+    assert_eq!(records[1].emails.len(), 2);
+    assert_eq!(records[1].emails[0], "bob@example.com");
+    assert_eq!(records[1].emails[1], "bob.doe@example.co.jp");
     assert_eq!(
         records[1].plan,
         Plan::Family {
             shared_membership: 4
         }
     );
+    assert_eq!(records[1].country_code, Some(81));
 
     assert_eq!(records[2].name, "Developer");
+    assert_eq!(records[2].emails.len(), 1);
     // falls back to default
-    assert_eq!(records[2].email, "developer@example.com");
+    assert_eq!(records[2].emails[0], "developer@example.com");
     assert_eq!(records[2].plan, Plan::Standard);
+    assert_eq!(records[2].country_code, Some(44));
 
     Ok(())
 }

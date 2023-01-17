@@ -9,8 +9,9 @@ pub struct Item {
 #[derive(Deserialize, Clone)]
 pub struct Customer {
     pub name: String,
-    pub email: String,
+    pub emails: Vec<String>,
     pub plan: Plan,
+    pub country_code: Option<u8>,
 }
 
 #[derive(Deserialize, Debug, Clone, PartialEq)]
