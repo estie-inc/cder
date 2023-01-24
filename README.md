@@ -3,23 +3,21 @@
 # cder
 
 
-#### a lightweight, simple database seeding tool for Rust
+### A lightweight, simple database seeding tool for Rust
 <br/>
 
-cder (_see-der_) is a database seeding tool to help you import
-data in your local environment.
+cder (_see-der_) is a database seeding tool to help you import fixure data in your local environment.
 
-Creating, and maintaining seeds are always a headache.
-Each time your schema is changed, your seed data or seeding program can be broken.
+Generating seeds programmatically is a easy task, but maintaining them is not.
+Everytime when your schema is changed, your seed can be broken.
+It costs your team extra efforts to keep them updated.
 
-cder provides you a yaml-based simple seeding mechanism that allows you to:
-- define data in a readable, easy-to-maintain format
-- construct any data types to any Rust struct on your codebase
-- reuse your existing insert function, no additional code required
+#### with cder you can:
+- maintain your data in a readable format, separated from the seeding program
+- handle reference integrities on-the-fly, using **embedded tags**
+- reuse existing struct and insert function, with only a little glue code is needed
 
-With **embedded tags**, you can also define relations between records
-(without even knowing their primary keys), as well as generate a
-personally-customizable attributes using environment variables.
+cder has no mechanism for database interaction, so it can works with any type of ORM or database wrapper (e.g. sqlx) your application have.
 
 This embedded-tag mechanism is inspired by [fixtures](https://github.com/rails/rails/blob/c9a0f1ab9616ca8e94f03327259ab61d22f04b51/activerecord/lib/active_record/fixtures.rb) that Ruby on Rails provides for test data generation.
 
@@ -34,18 +32,51 @@ cder = "0.1"
 
 ### Quick start
 
-#### constructing objects
+Suppose you have users table as seeding target:
 
-Suppose you have User struct;
+```sql
+CREATE TABLE
+  users (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255) NOT NULL,
+  )
+```
+
+In your application you also have:
+
+- a struct of type `<T>` (usually a model, built upon a underlying table)
+- database insertion method that returns id of the new record: `Fn(T) -> Result<i64>`
+
+First, add DeserializeOwned trait on the struct.
+(cder brings in *serde* as dependencies, so `derive(Deserialize)` macro can do the job)
+
 ```rust
+use serde::Deserialize;
+
+#[derive(Deserialize)] // add this derive macro
 User {
   name: String,
   email: String,
 }
+
+impl User {
+  // can be sync or async functions
+  async fn insert(&self) -> Result<(i64)> {
+    //
+    // inserts a corresponding record into table, and returns its id when succeeded
+    //
+  }
+}
 ```
 
-First, create a fixture and save it as (let's assume) 'fixture/users.yml'
+Your User seed is defined by two separate files, data and glue code.
+
+Now create a seed data file 'fixtures/users.yml'
+
 ```yaml
+# fixtures/users.yml
+
 User1:
   name: Alice
   email: 'alice@example.com'
@@ -54,14 +85,63 @@ User2:
   email: 'bob@example.com'
 ```
 
-Now you can build a Rust object as follows:
+Now you can insert above two users into your database:
+
+```rust
+use cder::DatabaseSeeder;
+
+async fn populate_seeds() -> Result<()> {
+    // specify the directory, relative to the project root
+    let mut seeder = DatabaseSeeder::new("fixtures");
+
+    seeder
+        .populate_async("users.yml", |input| {
+            Box::pin(async move { User::insert(&input).await })
+        })
+        .await?;
+
+    Ok(())
+}
+```
+
+Et voila! You will get the records `Alice` and `Bob` populated in your database.
+
+#### Working with non-async functions
+If your function is non-async (normal) function, use `Seeder::populate` instead of `Seeder::populate_async`.
+
+```rust
+use cder::DatabaseSeeder;
+
+fn main() -> Result<()> {
+    let mut seeder = DatabaseSeeder::new("fixtures"); // specify the directory, relative to the project root
+
+    seeder
+        .populate("users.yml", |input| {
+            // this block can contain any non-async functions
+            // but it has to return Result<i64> in the end
+            diesel::insert_into(users)
+                .values((name.eq(input.name), email.eq(input.email)))
+                .returning(id)
+                .get_result(conn)
+                .map(|value| value.into())
+        })
+    
+        Ok(())
+}
+```
+
+### Constructing instances
+
+If you want to take more granular control over the deserialized structs before inserting, use StructLoader instead.
 
 ```rust
 use cder::{ Dict, StructLoader };
 
-fn construct_users() -> result<()> {
+fn construct_users() -> Result<()> {
     // provide your fixture filename followed by its directory
     let mut loader = StructLoader::<User>::new("users.yml", "fixtures");
+    // deserializes User struct from the given fixture
+    // the argument is related to name resolution (described later)
     loader.load(&Dict::<String>::new())?;
 
     let customer = loader.get("User1")?;
@@ -76,74 +156,104 @@ fn construct_users() -> result<()> {
 }
 ```
 
-#### populating data
+### Defining values on-the-go
+cder replaces certain tags with values based on a couple of rules.
+This 'pre-processing' runs just before deserialization, so that you can define *dynamic* values that can vary depending on your local environments.
 
-With DatabaseSeeder, you can also persist records as follows.
+Currently following two cases are covered:
 
-Suppose you have users table as following:
-```rust
-CREATE TABLE
-  users (
-    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(255) NOT NULL,
-    `email` VARCHAR(255) NOT NULL,
-  )
+#### 1. Defining relations (foreign keys)
+
+Let's say you have two records to be inserted in `companies` table.
+`companies.id`s are unknown, as they are given by the local database on insert.
+
+```yaml
+# fixtures/companies.yml
+
+Company1:
+  name: MassiveSoft
+Company2:
+  name: BuggyTech
 ```
 
-You need to have a struct (usually a domain model that is built upon the underlying table), with database insertion method (Fn(T) -> Result<i64>, or its async equivalent)
-The struct need to have DeserializeOwned trait (don't worry, if you use serde, Deserialize macro can do the job)
+Now you have user records that reference to these companies:
 
-```rust
-use serde::Deserialize;
+```yaml
+# fixtures/users.yml
 
-#[derive(Deserialize, Clone)]
-User {
-  name: String,
-  email: String,
-}
-
-impl User {
-  async fn insert(&self) -> Result<(i64)> {
-    // inserts a corresponding record into table, and returns its id when succeeded
-  }
-}
+User1:
+  name: Alice
+  company_id: 1 // this might be wrong
 ```
 
-First, create a fixture and save it as 'fixture/users.yml'
+You might end up with failing building User1, as Company1 is not guaranteed to have id=1 (especially if you already have operated on the companies table).
+For this, use `${{ REF(label) }}` tag in place of undecided values.
 
 ```yaml
 User1:
   name: Alice
-  email: 'alice@example.com'
-User2:
-  name: Bob
-  email: 'bob@example.com'
+  company_id: ${{ REF(Company1) }}
 ```
 
-Now you can insert above two users into your database:
+Now, how does Seeder know id of Compnay1 record?
+As described earlier, the block given to Seeder must return `Result<i64>`. Seeder stores the result value mapped against the record label, which will be re-used later to resolve the tag references.
 
 ```rust
-use cder::{ Dict, StructLoader };
+use cder::DatabaseSeeder;
 
-async fn populate_users() -> result<()> {
-    // provide base directory (as Option)
+async fn populate_seeds() -> Result<()> {
     let mut seeder = DatabaseSeeder::new("fixtures");
-    let ids = seeder
-        .populate_async("users.yml", |input: User| {
-            Box::pin(async move { User::insert().await })
+
+    // Seeder stores mapping of companies record label and its id
+    seeder
+        .populate_async("companies.yml", |input| {
+            Box::pin(async move { Company::insert(&input).await })
+        })
+        .await?;
+    // the mapping is used to resolve the reference tags
+    seeder
+        .populate_async("users.yml", |input| {
+            Box::pin(async move { User::insert(&input).await })
         })
         .await?;
 
-    ok(())
+    Ok(())
 }
 ```
 
-Et voila! You will get the data populated in your database.
+A couple of watch-outs:
+1. Insert a file that contains 'referenced' records first (`companies` in above examples) before 'referencing' records (`users`).
+2. Currently Seeder resolve the tag when reading the source file. That means you cannot have references to the record within the same file.
+If you want to reference a user record from another one, you could achieve this by splitting the yaml file in two.
+
+#### 2. Environment vars
+You can also refer to environment variables using `${{ ENV(var_name) }}` syntax.
+
+```yaml
+Dev:
+  name: Developer
+  email: ${{ ENV(DEVELOPER_EMAIL) }}
+```
+
+The email is replaced with `DEVELOPER_EMAIL` if that environment var is defined.
+
+If you would prefer to use default value, use (shell-like) syntax:
+
+```yaml
+Dev:
+  name: Developer
+  email: ${{ ENV(DEVELOPER_EMAIL:-"developer@example.com") }}
+```
+
+Without specifying the defalut value, all the tags that points to undefined environment vars are simply replaced by empty string "".
 
 ### Data representation
+cder deserializes yaml data based on [serde-yaml](https://github.com/dtolnay/serde-yaml), that supports powerful [serde serialization framework](https://serde.rs/). With serde, you can deserialize pretty much any struct. You can see a few [sample structs](tests/test_utils/types.rs) with various types of attributes and [the yaml files](tests/fixtures) that can be used as their seeds.
+
+Below shows a few basics of required YAML format.
+Check [serde-yaml's github page](https://github.com/dtolnay/serde-yaml) for further details.
 
 #### Basics
-The basic structure of YAML file should be as follows:
 
 ```yaml
 Label_1:
@@ -154,7 +264,8 @@ Label_2:
   email: 'bob@example.com'
 ```
 
-Label_x is the name of each record (whatever string is fine, but should be unique), and values below defines the attributes.
+Notice that, cder requires to name each record with a label (*Label_x*).
+Label can be anything (as long as it is a valid yaml key) but you might want to keep them unique to avoid accidental mis-references.
 
 #### Enums and Complex types
 
@@ -188,19 +299,8 @@ Customer3:
   contact: !Unknown
 ```
 
-#### Further customization
-cder deserializes yaml data based on [serde-yaml](https://github.com/dtolnay/serde-yaml), that supports powerful [serde serialization framework](https://serde.rs/). With serde, you can deserialize pretty much any struct. You can see a few [sample structs](tests/test_utils/types.rs) with various types of attributes and [the yaml files](tests/fixtures) that can be used as their seeds.
-
-Check [serde-yaml's github page](https://github.com/dtolnay/serde-yaml) for further details.
-
-### Defining relations
-* TODO
-
-### Environment vars
-* TODO
-
-#### Default value
-* TODO
+### Not for production use
+cder is designed to populate seeds in development (or possibly, test) environment. Production use is NOT recommended.
 
 ## License
 
