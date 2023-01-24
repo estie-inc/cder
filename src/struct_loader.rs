@@ -3,9 +3,53 @@ use serde::de::DeserializeOwned;
 
 use crate::{load_named_records, Dict};
 
-/// struct that contains deserialized records as well as its original file
-/// internally HashMap is used to map records against their labelled names
+/// StructLoader deserializes struct instances from specified file.
+/// To resolve embedded tags, you need to provide HashMap that indicates corresponding records to
+/// the labels specified in the yaml file.
+///
 /// NOTE: record names must be unique, otherwise the ealier records will be overwritten by the latter.
+///
+/// # Examples
+/// ```rust
+/// use serde::Deserialize;
+/// use anyhow::Result;
+/// 
+/// // a model (struct)
+/// #[derive(Deserialize, Clone)] // add this derive macro
+/// struct User {
+///   name: String,
+///   email: String,
+/// }
+///
+/// // a function that persists user record into users table
+/// impl User {
+///   // can be sync or async functions
+///   async fn insert(input: &User) -> Result<(i64)> {
+///     //
+///     // this function inserts a corresponding User record into table,
+///     // and returns its id when succeeded
+///     //
+///     # Ok(1)
+///   }
+/// }
+///
+/// // glue code you need to add
+/// use cder::{ Dict, StructLoader };
+///
+/// # fn main() {
+/// #     load_user("Peter");
+/// # }
+///
+/// fn load_user(label: &str) -> Result<User> {
+///     // provide your fixture filename followed by its directory
+///     let mut loader = StructLoader::<User>::new("users.yml", "fixtures");
+/// 
+///     // deserializes User struct from the given fixture
+///     // the argument is related to name resolution (described later)
+///     let result = loader.load(&Dict::<String>::new())?;
+///     result.get(label).map(|user| user.clone())
+/// }
+/// ```
 pub struct StructLoader<T>
 where
     T: DeserializeOwned,

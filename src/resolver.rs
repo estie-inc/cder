@@ -1,8 +1,6 @@
-use crate::regex;
 use anyhow::Result;
 use std::{collections::HashMap, env, usize};
 
-#[macro_export]
 macro_rules! regex {
     ($re:literal $(,)?) => {{
         static RE: once_cell::sync::OnceCell<regex::Regex> = once_cell::sync::OnceCell::new();
