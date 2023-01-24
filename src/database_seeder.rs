@@ -13,7 +13,7 @@ use std::pin::Pin;
 /// ```rust
 /// use serde::Deserialize;
 /// use anyhow::Result;
-/// 
+///
 /// // a model (struct)
 /// #[derive(Deserialize)] // add this derive macro
 /// struct User {
@@ -42,17 +42,16 @@ use std::pin::Pin;
 ///
 /// async fn populate_seeds() -> Result<()> {
 ///     let mut seeder = DatabaseSeeder::new();
-/// 
+///
 ///     seeder
 ///         .populate_async("fixtures/users.yml", |input| {
 ///             Box::pin(async move { User::insert(&input).await })
 ///         })
 ///         .await?;
-/// 
+///
 ///     Ok(())
 /// }
 /// ```
-
 
 pub struct DatabaseSeeder {
     pub filenames: Vec<String>,
@@ -106,14 +105,14 @@ impl DatabaseSeeder {
     ///
     /// async fn populate_seeds() -> Result<()> {
     ///     let mut seeder = DatabaseSeeder::new();
-    /// 
+    ///
     /// seeder
     ///     .populate("fixures/users.yml", |input| {
     ///         // this block can contain any non-async functions
     ///         // but it has to return Result<i64> in the end
     ///         User::insert(&input)
     ///     });
-    /// 
+    ///
     ///     Ok(())
     /// }
     /// ```
@@ -160,13 +159,13 @@ impl DatabaseSeeder {
     ///
     /// async fn populate_seeds() -> Result<()> {
     ///     let mut seeder = DatabaseSeeder::new();
-    /// 
+    ///
     ///     seeder
     ///         .populate_async("fixtures/users.yml", |input| {
     ///             Box::pin(async move { User::insert(&input).await })
     ///         })
     ///         .await?;
-    /// 
+    ///
     ///     Ok(())
     /// }
     /// ```

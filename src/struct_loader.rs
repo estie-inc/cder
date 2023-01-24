@@ -13,7 +13,7 @@ use crate::{load_named_records, Dict};
 /// ```rust
 /// use serde::Deserialize;
 /// use anyhow::Result;
-/// 
+///
 /// // a model (struct)
 /// #[derive(Deserialize, Clone)] // add this derive macro
 /// struct User {
@@ -43,7 +43,7 @@ use crate::{load_named_records, Dict};
 /// fn load_user(label: &str) -> Result<User> {
 ///     // provide your fixture filename followed by its directory
 ///     let mut loader = StructLoader::<User>::new("users.yml", "fixtures");
-/// 
+///
 ///     // deserializes User struct from the given fixture
 ///     // the argument is related to name resolution (described later)
 ///     let result = loader.load(&Dict::<String>::new())?;
