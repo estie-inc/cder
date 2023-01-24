@@ -91,11 +91,10 @@ Now you can insert above two users into your database:
 use cder::DatabaseSeeder;
 
 async fn populate_seeds() -> Result<()> {
-    // specify the directory, relative to the project root
-    let mut seeder = DatabaseSeeder::new("fixtures");
+    let mut seeder = DatabaseSeeder::new()
 
     seeder
-        .populate_async("users.yml", |input| {
+        .populate_async("fixtures/users.yml", |input| {
             Box::pin(async move { User::insert(&input).await })
         })
         .await?;
@@ -113,10 +112,10 @@ If your function is non-async (normal) function, use `Seeder::populate` instead 
 use cder::DatabaseSeeder;
 
 fn main() -> Result<()> {
-    let mut seeder = DatabaseSeeder::new("fixtures"); // specify the directory, relative to the project root
+    let mut seeder = DatabaseSeeder::new();
 
     seeder
-        .populate("users.yml", |input| {
+        .populate("fixures/users.yml", |input| {
             // this block can contain any non-async functions
             // but it has to return Result<i64> in the end
             diesel::insert_into(users)
@@ -140,6 +139,7 @@ use cder::{ Dict, StructLoader };
 fn construct_users() -> Result<()> {
     // provide your fixture filename followed by its directory
     let mut loader = StructLoader::<User>::new("users.yml", "fixtures");
+
     // deserializes User struct from the given fixture
     // the argument is related to name resolution (described later)
     loader.load(&Dict::<String>::new())?;
@@ -202,7 +202,9 @@ As described earlier, the block given to Seeder must return `Result<i64>`. Seede
 use cder::DatabaseSeeder;
 
 async fn populate_seeds() -> Result<()> {
-    let mut seeder = DatabaseSeeder::new("fixtures");
+    let mut seeder = DatabaseSeeder::new();
+    // you can specify the base directory, relative to the project root
+    seeder.set_dir("fixtures");
 
     // Seeder stores mapping of companies record label and its id
     seeder
