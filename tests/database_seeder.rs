@@ -8,7 +8,8 @@ use tokio::runtime::Runtime;
 
 #[test]
 fn test_database_seeder_new() {
-    let seeder = DatabaseSeeder::new("fixtures");
+    let mut seeder = DatabaseSeeder::new();
+    seeder.set_dir("fixtures");
     assert!(seeder.filenames.is_empty());
     assert_eq!(seeder.base_dir, "fixtures".to_string());
 }
@@ -24,8 +25,8 @@ fn test_database_seeder_populate_items() -> Result<()> {
     ]);
     let rt = Runtime::new().unwrap();
 
-    let mut seeder = DatabaseSeeder::new(&base_dir);
-    let ids = seeder.populate("items.yml", |input: Item| {
+    let mut seeder = DatabaseSeeder::new();
+    let ids = seeder.populate(&format!("{}/items.yml", base_dir), |input: Item| {
         let mut mock_table = mock_table.clone();
         rt.block_on(mock_table.insert(input))
     })?;
@@ -58,7 +59,8 @@ fn test_database_seeder_populate_customers() -> Result<()> {
     ]);
     let rt = Runtime::new().unwrap();
 
-    let mut seeder = DatabaseSeeder::new(&base_dir);
+    let mut seeder = DatabaseSeeder::new();
+    seeder.set_dir(&base_dir);
     let ids = seeder.populate("customers.yml", |input: Customer| {
         let mut mock_table = mock_table.clone();
         rt.block_on(mock_table.insert(input))
@@ -100,7 +102,8 @@ fn test_database_seeder_populate_orders() -> Result<()> {
     let base_dir = get_test_base_dir();
     let rt = Runtime::new().unwrap();
 
-    let mut seeder = DatabaseSeeder::new(&base_dir);
+    let mut seeder = DatabaseSeeder::new();
+    seeder.set_dir(&base_dir);
 
     {
         // when dependencies are missing

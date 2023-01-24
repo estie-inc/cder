@@ -12,17 +12,21 @@ pub struct DatabaseSeeder {
 
 impl Default for DatabaseSeeder {
     fn default() -> Self {
-        Self::new("fixtures")
+        Self::new()
     }
 }
 
 impl DatabaseSeeder {
-    pub fn new(base_dir: &str) -> Self {
+    pub fn new() -> Self {
         Self {
             filenames: Vec::new(),
-            base_dir: base_dir.to_string(),
+            base_dir: String::new(),
             name_resolver: Dict::<String>::new(),
         }
+    }
+
+    pub fn set_dir(&mut self, base_dir: &str) {
+        self.base_dir = base_dir.to_string();
     }
 
     pub fn populate<F, T>(&mut self, filename: &str, mut loader: F) -> Result<Vec<i64>>
@@ -41,7 +45,6 @@ impl DatabaseSeeder {
         Ok(ids)
     }
 
-    /// experimental
     pub async fn populate_async<'a, F, T>(
         &mut self,
         filename: &str,
