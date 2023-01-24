@@ -2,8 +2,11 @@
 name = "cder"
 version = "0.1.0"
 edition = "2021"
-publish = false
-description = "seed generator that helps create and persist any struct-typed instances based on serde-compatible files"
+description = "database seed generator that helps create and persist struct-typed instances based on serde-compatible yaml files"
+repository = "https://github.com/estie-inc/cder"
+authors = ["Koji <fursich0@gmail.com>"]
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 anyhow = "1.0"
