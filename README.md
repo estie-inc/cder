@@ -1,4 +1,7 @@
 [![cder](https://github.com/estie-inc/cder/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/estie-inc/cder/actions/workflows/ci.yml)
+[![Latest version](https://img.shields.io/crates/v/cder.svg)](https://crates.io/crates/cder)
+[![Documentation](https://docs.rs/cder/badge.svg)](https://docs.rs/cder)
+![licence](https://img.shields.io/github/license/estie-inc/cder)
 
 # cder
 
