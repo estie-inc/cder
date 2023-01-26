@@ -5,7 +5,7 @@ use std::future::Future;
 use std::pin::Pin;
 /// DatabaseSeeder persists data deserialized from specified file.
 /// Internally it keeps record label mapped against its id on insertion. The mapping can be reused
-/// later process to resolve enbedded tags.
+/// later process to resolve embedded tags.
 ///
 /// NOTE: record names must be unique, otherwise the ealier records will be overwritten by the latter.
 ///
