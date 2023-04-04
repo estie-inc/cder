@@ -2,7 +2,6 @@ use crate::{load_named_records, Dict};
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 use std::future::Future;
-use std::pin::Pin;
 /// DatabaseSeeder persists data deserialized from specified file.
 /// Internally it keeps record label mapped against its id on insertion. The mapping can be reused
 /// later process to resolve embedded tags.
@@ -45,7 +44,7 @@ use std::pin::Pin;
 ///
 ///     seeder
 ///         .populate_async("fixtures/users.yml", |input| {
-///             Box::pin(async move { User::insert(&input).await })
+///             async move { User::insert(&input).await }
 ///         })
 ///         .await?;
 ///
@@ -162,26 +161,22 @@ impl DatabaseSeeder {
     ///
     ///     seeder
     ///         .populate_async("fixtures/users.yml", |input| {
-    ///             Box::pin(async move { User::insert(&input).await })
+    ///             async move { User::insert(&input).await }
     ///         })
     ///         .await?;
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn populate_async<'a, F, T>(
+    pub async fn populate_async<Fut, F, T>(
         &mut self,
         filename: &str,
         mut loader: F,
     ) -> Result<Vec<i64>>
     where
-        // XXX: The type of return value F should include +Send, but it brings in higher-ranked
-        // lifetime error with the caller blocks.
-        // (futures::future::BoxFuture is not available for the same reason)
-        // related to this issue?
-        // https://github.com/rust-lang/rust/issues/102211
-        F: FnMut(T) -> Pin<Box<dyn Future<Output = Result<i64>> + 'a>>,
-        T: DeserializeOwned + 'a,
+        Fut: Future<Output = Result<i64>>,
+        F: FnMut(T) -> Fut,
+        T: DeserializeOwned,
     {
         let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         self.filenames.push(filename.to_string());
