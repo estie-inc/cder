@@ -28,7 +28,7 @@ async fn test_database_seeder_populate_async_items() -> Result<()> {
     let ids = seeder
         .populate_async("items.yml", |input: Item| {
             let mut mock_table = mock_table.clone();
-            Box::pin(async move { mock_table.insert(input).await })
+            async move { mock_table.insert(input).await }
         })
         .await?;
 
@@ -64,7 +64,7 @@ async fn test_database_seeder_populate_async_customers() -> Result<()> {
     let ids = seeder
         .populate_async("customers.yml", |input: Customer| {
             let mut mock_table = mock_table.clone();
-            Box::pin(async move { mock_table.insert(input).await })
+            async move { mock_table.insert(input).await }
         })
         .await?;
 
@@ -117,7 +117,7 @@ async fn test_database_seeder_populate_async_orders() -> Result<()> {
         let results = seeder
             .populate_async("orders.yml", |input: Order| {
                 let mut mock_orders_table = mock_orders_table.clone();
-                Box::pin(async move { mock_orders_table.insert(input).await })
+                async move { mock_orders_table.insert(input).await }
             })
             .await;
 
@@ -135,7 +135,7 @@ async fn test_database_seeder_populate_async_orders() -> Result<()> {
         seeder
             .populate_async("items.yml", |input: Item| {
                 let mut mock_items_table = mock_items_table.clone();
-                Box::pin(async move { mock_items_table.insert(input).await })
+                async move { mock_items_table.insert(input).await }
             })
             .await?;
         let mock_customers_table = MockTable::<Customer>::new(vec![
@@ -146,7 +146,7 @@ async fn test_database_seeder_populate_async_orders() -> Result<()> {
         seeder
             .populate_async("customers.yml", |input: Customer| {
                 let mut mock_customers_table = mock_customers_table.clone();
-                Box::pin(async move { mock_customers_table.insert(input).await })
+                async move { mock_customers_table.insert(input).await }
             })
             .await?;
 
@@ -159,7 +159,7 @@ async fn test_database_seeder_populate_async_orders() -> Result<()> {
         let ids = seeder
             .populate_async("orders.yml", |input: Order| {
                 let mut mock_orders_table = mock_orders_table.clone();
-                Box::pin(async move { mock_orders_table.insert(input).await })
+                async move { mock_orders_table.insert(input).await }
             })
             .await?;
 

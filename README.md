@@ -98,7 +98,7 @@ async fn populate_seeds() -> Result<()> {
 
     seeder
         .populate_async("fixtures/users.yml", |input| {
-            Box::pin(async move { User::insert(&input).await })
+            async move { User::insert(&input).await }
         })
         .await?;
 
@@ -212,13 +212,13 @@ async fn populate_seeds() -> Result<()> {
     // Seeder stores mapping of companies record label and its id
     seeder
         .populate_async("companies.yml", |input| {
-            Box::pin(async move { Company::insert(&input).await })
+            async move { Company::insert(&input).await }
         })
         .await?;
     // the mapping is used to resolve the reference tags
     seeder
         .populate_async("users.yml", |input| {
-            Box::pin(async move { User::insert(&input).await })
+            async move { User::insert(&input).await }
         })
         .await?;
 
