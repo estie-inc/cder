@@ -119,7 +119,7 @@ impl DatabaseSeeder {
     where
         F: FnMut(T) -> Result<U>,
         T: DeserializeOwned,
-        U: ToString
+        U: ToString,
     {
         let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         let mut ids = Vec::new();
@@ -178,7 +178,7 @@ impl DatabaseSeeder {
         Fut: Future<Output = Result<U>>,
         F: FnMut(T) -> Fut,
         T: DeserializeOwned,
-        U: ToString
+        U: ToString,
     {
         let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         self.filenames.push(filename.to_string());
