@@ -7,10 +7,7 @@ use std::sync::{Arc, Mutex};
 
 // async insertion is done in random order, so records has to be sorted before testing
 pub fn sort_records_by_ids<T>(records: Vec<T>, ids: Vec<i64>) -> Vec<T> {
-    let mut indexed_records = ids
-        .iter()
-        .zip(records.into_iter())
-        .collect::<Vec<(&i64, T)>>();
+    let mut indexed_records = ids.iter().zip(records).collect::<Vec<(&i64, T)>>();
     indexed_records.sort_unstable_by_key(|(i, _)| *i);
     indexed_records
         .into_iter()
@@ -34,7 +31,7 @@ where
     T: Clone,
 {
     pub fn new(ids_by_name: Vec<(String, i64)>) -> Self {
-        let ids_by_name = HashMap::from_iter(ids_by_name.into_iter());
+        let ids_by_name = HashMap::from_iter(ids_by_name);
 
         MockTable {
             ids_by_name: Arc::new(Mutex::new(ids_by_name)),
