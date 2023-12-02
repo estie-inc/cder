@@ -80,7 +80,7 @@ where
         }
 
         let records = load_named_records::<T>(&self.filename, &self.base_dir, dependencies)?;
-        self.set_recoards(records)?;
+        self.set_records(records)?;
 
         Ok(self)
     }
@@ -100,7 +100,7 @@ where
         self.get_records()
     }
 
-    fn set_recoards(&mut self, named_records: Dict<T>) -> Result<()> {
+    fn set_records(&mut self, named_records: Dict<T>) -> Result<()> {
         if self.named_records.is_some() {
             return Err(anyhow::anyhow!(
                 "filename : {} the records have been loaded already",
