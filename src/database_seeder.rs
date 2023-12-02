@@ -115,10 +115,11 @@ impl DatabaseSeeder {
     ///     Ok(())
     /// }
     /// ```
-    pub fn populate<F, T>(&mut self, filename: &str, mut loader: F) -> Result<Vec<i64>>
+    pub fn populate<F, T, U>(&mut self, filename: &str, mut loader: F) -> Result<Vec<U>>
     where
-        F: FnMut(T) -> Result<i64>,
+        F: FnMut(T) -> Result<U>,
         T: DeserializeOwned,
+        U: ToString,
     {
         let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         let mut ids = Vec::new();
@@ -168,15 +169,16 @@ impl DatabaseSeeder {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn populate_async<Fut, F, T>(
+    pub async fn populate_async<Fut, F, T, U>(
         &mut self,
         filename: &str,
         mut loader: F,
-    ) -> Result<Vec<i64>>
+    ) -> Result<Vec<U>>
     where
-        Fut: Future<Output = Result<i64>>,
+        Fut: Future<Output = Result<U>>,
         F: FnMut(T) -> Fut,
         T: DeserializeOwned,
+        U: ToString,
     {
         let named_records = load_named_records::<T>(filename, &self.base_dir, &self.name_resolver)?;
         self.filenames.push(filename.to_string());
