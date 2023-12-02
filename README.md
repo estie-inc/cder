@@ -29,7 +29,7 @@ This embedded-tag mechanism is inspired by [fixtures](https://github.com/rails/r
 ```toml
 # Cargo.toml
 [dependencies]
-cder = "0.1"
+cder = "0.2"
 ```
 ## Usage
 
