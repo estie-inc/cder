@@ -9,18 +9,18 @@
 ### A lightweight, simple database seeding tool for Rust
 <br/>
 
-cder (_see-der_) is a database seeding tool to help you import fixure data in your local environment.
+cder (_see-der_) is a database seeding tool to help you import fixture data in your local environment.
 
-Generating seeds programmatically is a easy task, but maintaining them is not.
-Everytime when your schema is changed, your seed can be broken.
-It costs your team extra efforts to keep them updated.
+Generating seeds programmatically is an easy task, but maintaining them is not.
+Every time when your schema is changed, your seeds can be broken.
+It costs your team extra effort to keep them updated.
 
 #### with cder you can:
 - maintain your data in a readable format, separated from the seeding program
 - handle reference integrities on-the-fly, using **embedded tags**
-- reuse existing struct and insert function, with only a little glue code is needed
+- reuse existing structs and insert functions, with only a little glue code is needed
 
-cder has no mechanism for database interaction, so it can works with any type of ORM or database wrapper (e.g. sqlx) your application have.
+cder has no mechanism for database interaction, so it can work with any type of ORM or database wrapper (e.g. sqlx) your application has.
 
 This embedded-tag mechanism is inspired by [fixtures](https://github.com/rails/rails/blob/c9a0f1ab9616ca8e94f03327259ab61d22f04b51/activerecord/lib/active_record/fixtures.rb) that Ruby on Rails provides for test data generation.
 
@@ -118,7 +118,7 @@ fn main() -> Result<()> {
     let mut seeder = DatabaseSeeder::new();
 
     seeder
-        .populate("fixures/users.yml", |input| {
+        .populate("fixtures/users.yml", |input| {
             // this block can contain any non-async functions
             // but it has to return Result<i64> in the end
             diesel::insert_into(users)
@@ -127,7 +127,7 @@ fn main() -> Result<()> {
                 .get_result(conn)
                 .map(|value| value.into())
         })
-    
+
         Ok(())
 }
 ```
@@ -250,12 +250,12 @@ Dev:
   email: ${{ ENV(DEVELOPER_EMAIL:-"developer@example.com") }}
 ```
 
-Without specifying the defalut value, all the tags that points to undefined environment vars are simply replaced by empty string "".
+Without specifying the default value, all the tags that point to undefined environment vars are simply replaced by empty string "".
 
 ### Data representation
 cder deserializes yaml data based on [serde-yaml](https://github.com/dtolnay/serde-yaml), that supports powerful [serde serialization framework](https://serde.rs/). With serde, you can deserialize pretty much any struct. You can see a few [sample structs](tests/test_utils/types.rs) with various types of attributes and [the yaml files](tests/fixtures) that can be used as their seeds.
 
-Below shows a few basics of required YAML format.
+Below are a few basics of required YAML format.
 Check [serde-yaml's github page](https://github.com/dtolnay/serde-yaml) for further details.
 
 #### Basics
@@ -269,8 +269,8 @@ Label_2:
   email: 'bob@example.com'
 ```
 
-Notice that, cder requires to name each record with a label (*Label_x*).
-Label can be anything (as long as it is a valid yaml key) but you might want to keep them unique to avoid accidental mis-references.
+Notice that, cder requires each record to be labeled (*Label_x*).
+A label can be anything (as long as it is a valid yaml key) but you might want to keep them unique to avoid accidental mis-references.
 
 #### Enums and Complex types
 
