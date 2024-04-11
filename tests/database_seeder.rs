@@ -1,5 +1,7 @@
 mod test_utils;
-use test_utils::*;
+use test_utils::{
+    get_test_base_dir, parse_datetime, sort_records_by_ids, Customer, Item, MockTable, Order, Plan,
+};
 extern crate cder;
 
 use anyhow::Result;

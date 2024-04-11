@@ -1,6 +1,11 @@
 mod mock_database;
 mod types;
+
+// FIXME: workaround for false positive detection of unused_imports, which might be related to:
+// https://github.com/rust-lang/rust/issues/121708
+#[allow(unused_imports)]
 pub use mock_database::{sort_records_by_ids, MockTable};
+
 pub use types::{Customer, Item, Order, Plan};
 
 use anyhow::Result;
