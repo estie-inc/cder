@@ -106,7 +106,7 @@ impl DatabaseSeeder {
     ///     let mut seeder = DatabaseSeeder::new();
     ///
     /// seeder
-    ///     .populate("fixures/users.yml", |input| {
+    ///     .populate("fixtures/users.yml", |input| {
     ///         // this block can contain any non-async functions
     ///         // but it has to return Result<i64> in the end
     ///         User::insert(&input)
