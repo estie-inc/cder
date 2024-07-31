@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 
+use std::iter;
 use crate::{load_named_records, Dict};
 
 /// StructLoader deserializes struct instances from specified file.
@@ -57,6 +58,21 @@ where
     pub filename: String,
     pub base_dir: String,
     named_records: Option<Dict<T>>,
+}
+
+impl<'a, T> IntoIterator for &'a StructLoader<T>
+where
+    T: DeserializeOwned,
+{
+    type Item = (&'a String, &'a T);
+    type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self.named_records.as_ref() {
+            Some(records) => Box::new(records.iter()),
+            None => Box::new(iter::empty()),
+        }
+    }
 }
 
 impl<T> StructLoader<T>
