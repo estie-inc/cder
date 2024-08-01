@@ -1,8 +1,8 @@
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 
-use std::iter;
 use crate::{load_named_records, Dict};
+use std::iter;
 
 /// StructLoader deserializes struct instances from specified file.
 /// To resolve embedded tags, you need to provide HashMap that indicates corresponding records to

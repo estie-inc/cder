@@ -3,6 +3,7 @@ use test_utils::{get_test_base_dir, parse_datetime, Customer, Item, Order, Plan}
 extern crate cder;
 
 use anyhow::Result;
+use assert_unordered::assert_eq_unordered;
 use cder::{Dict, StructLoader};
 use std::env;
 
@@ -211,6 +212,58 @@ fn test_struct_loader_load_orders() -> Result<()> {
         assert_eq!(order.item_id, 100);
         assert_eq!(order.quantity, 2);
         assert_eq!(order.purchased_at, parse_datetime("2021-03-11 11:55:44")?);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn test_struct_loader_into_iterator() -> Result<()> {
+    let base_dir = get_test_base_dir();
+    let empty_dict = Dict::<String>::new();
+
+    let mut loader = StructLoader::<Item>::new("items.yml", &base_dir);
+
+    {
+        // when items are not loaded
+        let unloaded_item_iter = loader.into_iter();
+        assert_eq!(unloaded_item_iter.count(), 0);
+    }
+
+    loader.load(&empty_dict)?;
+
+    {
+        // when items are loaded
+        let item_iter = loader.into_iter();
+        for (name, item) in item_iter {
+            match name.as_str() {
+                "Melon" => {
+                    assert_eq!(item.name, "melon");
+                    assert_eq!(item.price, 500.0);
+                }
+                "Orange" => {
+                    assert_eq!(item.name, "orange");
+                    assert_eq!(item.price, 200.0);
+                }
+                "Apple" => {
+                    assert_eq!(item.name, "apple");
+                    assert_eq!(item.price, 100.0);
+                }
+                "Carrot" => {
+                    assert_eq!(item.name, "carrot");
+                    assert_eq!(item.price, 150.0);
+                }
+                _ => panic!("unexpected item"),
+            }
+        }
+
+        let item_iter = loader.into_iter();
+        let item_names: Vec<&str> = item_iter.map(|(_, item)| item.name.as_str()).collect();
+        assert_eq_unordered!(item_names, vec!["melon", "orange", "apple", "carrot"]);
+
+        let item_iter = loader.into_iter();
+        let item_prices: Vec<f64> = item_iter.map(|(_, item)| item.price).collect();
+        assert_eq_unordered!(item_prices, vec![500.0, 200.0, 100.0, 150.0]);
     }
 
     Ok(())
