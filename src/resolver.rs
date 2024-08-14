@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::{collections::HashMap, env, usize};
+use std::{collections::HashMap, env};
 
 macro_rules! regex {
     ($re:literal $(,)?) => {{
