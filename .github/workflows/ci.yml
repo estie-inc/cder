@@ -24,10 +24,6 @@ jobs:
         with:
           toolchain: ${{ matrix.version }}
           components: rustfmt, clippy
-      # tokio 1.39+ requires rust <= 1.70.0
-      # https://github.com/tokio-rs/tokio?tab=readme-ov-file#supported-rust-versions
-      - run: cargo update -p tokio --precise 1.38.1
-        if: matrix.version == '1.68.0'
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets --all-features
       - run: cargo test
